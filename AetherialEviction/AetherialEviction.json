@@ -1,0 +1,15 @@
+{
+  "Author": "baanderson40",
+  "Name": "Aetherial Eviction",
+  "Punchline": "Reduce resource pressure across multiple FFXIV clients.",
+  "Description": "Safely trims the current FFXIV client's Windows working set, gates background rendering, and saves window placement.",
+  "ApplicableVersion": "any",
+  "RepoUrl": "https://github.com/baanderson40/Aetherial-Eviction",
+  "Tags": [
+    "performance",
+    "memory",
+    "utility"
+  ],
+  "AcceptsFeedback": true,
+  "FeedbackMessage": "Please report issues or suggestions via GitHub."
+}
