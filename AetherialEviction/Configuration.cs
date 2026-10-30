@@ -30,6 +30,8 @@ public sealed class Configuration : IPluginConfiguration
 
     public bool WindowSizeAutoLoadEnabled { get; set; }
 
+    public bool CharacterFolderMarkersEnabled { get; set; } = true;
+
     public SavedWindowPlacement? WindowPlacement { get; set; }
 
     [NonSerialized]

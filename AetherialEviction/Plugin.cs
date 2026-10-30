@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Command;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.DutyState;
@@ -34,10 +35,16 @@ public sealed class Plugin : IDalamudPlugin
     internal static IClientState ClientState { get; private set; } = null!;
 
     [PluginService]
+    internal static IObjectTable ObjectTable { get; private set; } = null!;
+
+    [PluginService]
     internal static ICondition Condition { get; private set; } = null!;
 
     [PluginService]
     internal static IDutyState DutyState { get; private set; } = null!;
+
+    [PluginService]
+    internal static IAddonLifecycle AddonLifecycle { get; private set; } = null!;
 
     [PluginService]
     internal static IPluginLog Log { get; private set; } = null!;
@@ -47,6 +54,7 @@ public sealed class Plugin : IDalamudPlugin
     private readonly ConfigWindow _configWindow;
     private readonly BackgroundRenderGateService _backgroundRenderGateService;
     private readonly WindowPlacementService _windowPlacementService;
+    private readonly CharacterFolderService _characterFolderService;
     private DateTime _nextCheckUtc = DateTime.MinValue;
     private DateTime _nextWindowAutoLoadAttemptUtc = DateTime.MinValue;
     private DateTime _lastTrimUtc = DateTime.MinValue;
@@ -64,6 +72,7 @@ public sealed class Plugin : IDalamudPlugin
 
         _backgroundRenderGateService = new BackgroundRenderGateService();
         _windowPlacementService = new WindowPlacementService();
+        _characterFolderService = new CharacterFolderService(_configuration, Log);
         _configWindow = new ConfigWindow(this, _configuration);
         _windowSystem.AddWindow(_configWindow);
 
@@ -79,6 +88,10 @@ public sealed class Plugin : IDalamudPlugin
             HelpMessage = "Open Aetherial Eviction settings."
         });
         Framework.Update += OnFrameworkUpdate;
+        ClientState.Login += OnLogin;
+        AddonLifecycle.RegisterListener(AddonEvent.PostSetup, "_CharaSelectListMenu", OnCharacterSelectListUpdated);
+        AddonLifecycle.RegisterListener(AddonEvent.PostRequestedUpdate, "_CharaSelectListMenu", OnCharacterSelectListUpdated);
+        AddonLifecycle.RegisterListener(AddonEvent.PostRefresh, "_CharaSelectListMenu", OnCharacterSelectListUpdated);
         DutyState.DutyStarted += OnDutyStarted;
         DutyState.DutyCompleted += OnDutyCompleted;
         ApplyConfiguration();
@@ -89,6 +102,10 @@ public sealed class Plugin : IDalamudPlugin
     public void Dispose()
     {
         Framework.Update -= OnFrameworkUpdate;
+        ClientState.Login -= OnLogin;
+        AddonLifecycle.UnregisterListener(AddonEvent.PostSetup, "_CharaSelectListMenu", OnCharacterSelectListUpdated);
+        AddonLifecycle.UnregisterListener(AddonEvent.PostRequestedUpdate, "_CharaSelectListMenu", OnCharacterSelectListUpdated);
+        AddonLifecycle.UnregisterListener(AddonEvent.PostRefresh, "_CharaSelectListMenu", OnCharacterSelectListUpdated);
         DutyState.DutyStarted -= OnDutyStarted;
         DutyState.DutyCompleted -= OnDutyCompleted;
         _backgroundRenderGateService.Dispose();
@@ -124,6 +141,17 @@ public sealed class Plugin : IDalamudPlugin
     internal Configuration Configuration => _configuration;
     internal BackgroundRenderGateService BackgroundRenderGateService => _backgroundRenderGateService;
     internal WindowPlacementService WindowPlacementService => _windowPlacementService;
+    internal CharacterFolderService CharacterFolderService => _characterFolderService;
+
+    private void OnLogin()
+    {
+        _characterFolderService.ScanLoggedInCharacter();
+    }
+
+    private void OnCharacterSelectListUpdated(AddonEvent _, Dalamud.Game.Addon.Lifecycle.AddonArgTypes.AddonArgs __)
+    {
+        _characterFolderService.ScanCurrentSelection();
+    }
 
     private void OnCommand(string command, string arguments)
     {

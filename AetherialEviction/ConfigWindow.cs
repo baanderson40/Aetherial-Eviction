@@ -46,6 +46,12 @@ internal sealed class ConfigWindow : Window, IDisposable
             ImGui.EndTabItem();
         }
 
+        if (ImGui.BeginTabItem("Character Folders"))
+        {
+            DrawCharacterFoldersTab();
+            ImGui.EndTabItem();
+        }
+
         ImGui.EndTabBar();
     }
 
@@ -219,5 +225,23 @@ internal sealed class ConfigWindow : Window, IDisposable
 
         ImGui.Separator();
         ImGui.TextWrapped(_plugin.WindowPlacementService.Status);
+    }
+
+    private void DrawCharacterFoldersTab()
+    {
+        var enabled = _configuration.CharacterFolderMarkersEnabled;
+        if (ImGui.Checkbox("Create character folder markers", ref enabled))
+        {
+            _configuration.CharacterFolderMarkersEnabled = enabled;
+            _configuration.Save();
+        }
+
+        ImGui.TextWrapped("Creates an empty _Name@HomeWorld file inside each matching character config folder when the character list loads or a character logs in.");
+        ImGui.TextDisabled("Existing files are left untouched. No periodic scans.");
+
+        if (ImGui.Button("Scan currently loaded character list"))
+            _plugin.CharacterFolderService.ScanCurrentSelection();
+
+        ImGui.TextWrapped(_plugin.CharacterFolderService.Status);
     }
 }

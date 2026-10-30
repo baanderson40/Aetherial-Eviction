@@ -3,6 +3,10 @@
 ## Build
 
 - Requires Windows, .NET 10 SDK, Dalamud API 15 development files, and x64.
+- Windows .NET CLI: `C:\Program Files\dotnet\dotnet.exe`.
+- Debug x64 output: `AetherialEviction/bin/x64/Debug/AetherialEviction.dll`.
+- Build Debug x64 from PowerShell:
+  - `& 'C:\Program Files\dotnet\dotnet.exe' build 'D:\Coding\C#\Aetherial Eviction\AetherialEviction\AetherialEviction.csproj' --configuration Debug -p:Platform=x64`
 - From the repository root:
   - `dotnet restore "AetherialEviction/AetherialEviction.slnx" --locked-mode`
   - `dotnet build "AetherialEviction/AetherialEviction.slnx" --configuration Release --no-restore`
